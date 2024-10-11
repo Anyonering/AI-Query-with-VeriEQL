@@ -127,6 +127,84 @@ export default function Home() {
         }
     }
 
+    function handleAskAI() {
+        try{
+            let data = {
+                "query1": query1,
+                
+            }
+            fetch('http://127.0.0.1:8000/askai', {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(data)
+            }).then((response) => {
+                // console.log(response)
+                return response.json();
+            }).then((data) => {
+                setQuery2(data);
+            });
+        }
+        catch (error) {
+            const status = document.getElementById('decision');
+            const counterexample = document.getElementById('counterexample');
+            // @ts-ignore
+            status.innerHTML = '';
+            // @ts-ignore
+            counterexample.innerHTML = '';
+
+            alert('Schema format incorrect');
+        }
+    }
+
+    function executeQuery(ident: number){
+        let text = '';
+        switch (ident) {
+            case 1:
+                text = query1;
+                break
+            case 2:
+                text = query2;
+                break;
+            default:
+                text = query1;
+                // @ts-ignore
+                
+        }
+        try{
+            let data = {
+                "query1": query1,
+                
+            }
+            fetch('http://127.0.0.1:8000/excquery', {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(data)
+            }).then((response) => {
+                // console.log(response)
+                return response.json();
+            }).then((data) => {
+                const status = document.getElementById('decision');
+                console.log(data);
+                // @ts-ignore
+                status.innerHTML = `Query takes ${data['time']} seconds`;
+            });
+        }
+        catch (error) {
+            const status = document.getElementById('decision');
+            const counterexample = document.getElementById('counterexample');
+            // @ts-ignore
+            status.innerHTML = '';
+            // @ts-ignore
+            counterexample.innerHTML = '';
+
+            alert('Error running the given query!');
+        }
+    }
+
     function generateCounterexampleTable(table_name: string, table_rows: ({ [s: string]: unknown; } | ArrayLike<unknown>)[]) {
         let table = `<div class="mt-2 text-sm leading-5 font-bold">${table_name}</div>`;
 
@@ -174,7 +252,7 @@ export default function Home() {
         counterexample.innerHTML = '';
 
         setQuery1('SELECT ROUND((SUM(ORDER_DATE = CUSTOMER_PREF_DELIVERY_DATE) / COUNT(*)) * 100 , 2) AS IMMEDIATE_PERCENTAGE FROM DELIVERY');
-        setQuery2('SELECT ROUND(SUM(IF(ORDER_DATE = CUSTOMER_PREF_DELIVERY_DATE, 1,0 ))/COUNT(DELIVERY_ID) *100,2) AS IMMEDIATE_PERCENTAGE FROM DELIVERY');
+        // setQuery2('SELECT ROUND(SUM(IF(ORDER_DATE = CUSTOMER_PREF_DELIVERY_DATE, 1,0 ))/COUNT(DELIVERY_ID) *100,2) AS IMMEDIATE_PERCENTAGE FROM DELIVERY');
         setBound(2);
         setSchema('{\n' +
             '    "DELIVERY": {\n' +
@@ -198,7 +276,7 @@ export default function Home() {
         counterexample.innerHTML = '';
 
         setQuery1('SELECT DEPTNO, COUNT(*) FILTER (WHERE JOB = \'CLERK\') FROM (SELECT * FROM EMP WHERE DEPTNO = 10 UNION ALL SELECT * FROM EMP WHERE DEPTNO > 20) AS t3 GROUP BY DEPTNO');
-        setQuery2('SELECT DEPTNO, COALESCE(SUM(EXPR$1), 0) FROM (SELECT DEPTNO, COUNT(*) FILTER (WHERE JOB = \'CLERK\') AS EXPR$1 FROM EMP WHERE DEPTNO = 10 GROUP BY DEPTNO UNION ALL SELECT DEPTNO, COUNT(*) FILTER (WHERE JOB = \'CLERK\') AS EXPR$1 FROM EMP WHERE DEPTNO > 20 GROUP BY DEPTNO) AS t12 GROUP BY DEPTNO');
+        // setQuery2('SELECT DEPTNO, COALESCE(SUM(EXPR$1), 0) FROM (SELECT DEPTNO, COUNT(*) FILTER (WHERE JOB = \'CLERK\') AS EXPR$1 FROM EMP WHERE DEPTNO = 10 GROUP BY DEPTNO UNION ALL SELECT DEPTNO, COUNT(*) FILTER (WHERE JOB = \'CLERK\') AS EXPR$1 FROM EMP WHERE DEPTNO > 20 GROUP BY DEPTNO) AS t12 GROUP BY DEPTNO');
         setBound(2);
         setSchema('{"EMP": {"EMPNO": "INT", "DEPTNO": "int", "ENAME": "VARCHAR", "JOB": "VARCHAR", "MGR": "INT",\n' +
             '                          "HIREDATE": "DATE", "SAL": "INT", "COMM": "INT", "SLACKER": "BOOLEAN"},\n' +
@@ -255,6 +333,28 @@ export default function Home() {
             ']');
     }
 
+    function loadTPC_H_Example() {
+        const status = document.getElementById('decision');
+        const counterexample = document.getElementById('counterexample');
+        // @ts-ignore
+        status.innerHTML = '';
+        // @ts-ignore
+        counterexample.innerHTML = '';
+
+        setQuery1("SELECT sum(l_extendedprice * l_discount) as revenue FROM lineitem WHERE l_shipdate >= date '1993-01-01' and l_shipdate < date '1993-01-01' + interval '1' year and l_discount between 0.07 - 0.01 and 0.07 + 0.01 and l_quantity < 25 LIMIT 1;");
+        // setQuery2('SELECT CUSTOMER_ID, CUSTOMER_NAME FROM CUSTOMERS WHERE CUSTOMER_ID IN (SELECT DISTINCT CUSTOMER_ID FROM ORDERS WHERE PRODUCT_NAME = \'A\') AND CUSTOMER_ID IN (SELECT DISTINCT CUSTOMER_ID FROM ORDERS WHERE PRODUCT_NAME = \'B\') AND CUSTOMER_ID NOT IN (SELECT DISTINCT CUSTOMER_ID FROM ORDERS WHERE PRODUCT_NAME = \'C\') ORDER BY CUSTOMER_ID');
+        setBound(2);
+        setSchema('{\n' +
+            '  "LINEITEM": {"L_ORDERKEY": "INT", "L_PARTKEY": "INT", "L_SUPPKEY": "INT", "L_LINENUMBER": "INT","L_QUANTITY": "DECIMAL", "L_EXTENDEDPRICE": "DECIMAL","L_DISCOUNT": "DECIMAL", "L_TAX": "DECIMAL","L_RETURNFLAG": "VARCHAR", "L_LINESTATUS": "VARCHAR","L_SHIPDATE": "DATE", "L_COMMITDATE": "DATE","L_RECEIPTDATE": "DATE", "L_SHIPINSTRUCT": "VARCHAR","L_SHIPMODE": "VARCHAR", "L_COMMENT": "VARCHAR"}\n' +
+            // '  "ORDERS": {"ORDER_ID": "INT", "CUSTOMER_ID": "int", "PRODUCT_NAME": "VARCHAR"}\n' +
+            '}');
+        setConstraints('[\n' +
+            '  {"primary": [{"value": "LINEITEM.L_ORDERKEY"}]}\n' +
+            // '  {"primary": [{"value": "ORDERS.ORDER_ID"}]},\n' +
+            // '  {"foreign": [{"value": "ORDERS.CUSTOMER_ID"}, {"value": "CUSTOMERS.CUSTOMER_ID"}]}\n' +
+            ']');
+    }
+
     function loadCountBug() {
         const status = document.getElementById('decision');
         const counterexample = document.getElementById('counterexample');
@@ -264,7 +364,7 @@ export default function Home() {
         counterexample.innerHTML = '';
 
         setQuery1('SELECT PNUM FROM PARTS WHERE (PNUM, QOH) IN (SELECT P.PNUM, IF(ISNULL(CT), 0, CT) AS QOH FROM (SELECT PNUM FROM SUPPLY GROUP BY PNUM) P LEFT JOIN (SELECT PNUM, COUNT(SHIPDATE) AS CT FROM SUPPLY WHERE SHIPDATE < (DATE \'1980-01-01\') GROUP BY PNUM) Q ON P.PNUM=Q.PNUM);');
-        setQuery2('WITH TEMP(SUPPNUM, CT) AS (SELECT PNUM, COUNT(SHIPDATE) FROM SUPPLY WHERE SHIPDATE < (DATE \'1980-01-01\') GROUP BY PNUM) SELECT PNUM FROM PARTS, TEMP WHERE PARTS.QOH = TEMP.CT AND PARTS.PNUM = TEMP.SUPPNUM;');
+        // setQuery2('WITH TEMP(SUPPNUM, CT) AS (SELECT PNUM, COUNT(SHIPDATE) FROM SUPPLY WHERE SHIPDATE < (DATE \'1980-01-01\') GROUP BY PNUM) SELECT PNUM FROM PARTS, TEMP WHERE PARTS.QOH = TEMP.CT AND PARTS.PNUM = TEMP.SUPPNUM;');
         setBound(1);
         setSchema('{\n' +
             '  "PARTS":{"PNUM":"INT","QOH":"INT"},\n' +
@@ -282,7 +382,7 @@ export default function Home() {
         counterexample.innerHTML = '';
 
         setQuery1('SELECT DISTINCT PAGE_ID AS RECOMMENDED_PAGE FROM (SELECT CASE WHEN USER1_ID=1 THEN USER2_ID WHEN USER2_ID=1 THEN USER1_ID ELSE NULL END AS USER_ID FROM FRIENDSHIP) AS TB1 JOIN LIKES AS TB2 ON TB1.USER_ID=TB2.USER_ID WHERE PAGE_ID NOT IN (SELECT PAGE_ID FROM LIKES WHERE USER_ID=1)');
-        setQuery2('SELECT DISTINCT PAGE_ID AS RECOMMENDED_PAGE FROM ( SELECT B.USER_ID, B.PAGE_ID FROM FRIENDSHIP A LEFT JOIN LIKES B ON (A.USER2_ID=B.USER_ID OR A.USER1_ID=B.USER_ID) AND (A.USER1_ID=1 OR A.USER2_ID=1) WHERE B.PAGE_ID NOT IN ( SELECT DISTINCT(PAGE_ID) FROM LIKES WHERE USER_ID=1) ) T');
+        // setQuery2('SELECT DISTINCT PAGE_ID AS RECOMMENDED_PAGE FROM ( SELECT B.USER_ID, B.PAGE_ID FROM FRIENDSHIP A LEFT JOIN LIKES B ON (A.USER2_ID=B.USER_ID OR A.USER1_ID=B.USER_ID) AND (A.USER1_ID=1 OR A.USER2_ID=1) WHERE B.PAGE_ID NOT IN ( SELECT DISTINCT(PAGE_ID) FROM LIKES WHERE USER_ID=1) ) T');
         setBound(1);
         setSchema('{\n' +
             '  "FRIENDSHIP":{"USER1_ID":"INT","USER2_ID":"INT"},\n' +
@@ -296,7 +396,7 @@ export default function Home() {
     }
 
     return (
-        <main className="flex min-h-screen flex-col items-center justify-between p-14">
+        <main className="flex min-h-screen flex-col items-center justify-between p-14" style={{ backgroundColor: '#e8f8f5' }}>
 
             <div className="mb-32 text-center lg:max-w-7xl lg:w-full lg:mb-0 lg:grid-cols-4 lg:text-left">
 
@@ -316,6 +416,9 @@ export default function Home() {
                                       value={query1}
                                       onChange={e => setQuery1(e.target.value)}>
                             </textarea>
+                            <button className="btn btn-accent" onClick={() => executeQuery(1)}>
+                                    Execute Query 1
+                                </button>
 
                             <label htmlFor="query-2" className="block mb-2 text-sm font-medium text-gray-900">Query
                                 2</label>
@@ -323,13 +426,16 @@ export default function Home() {
                                       value={query2}
                                       onChange={e => setQuery2(e.target.value)}
                                       className="textarea textarea-secondary resize-y w-full textarea-bordered"></textarea>
-
+                            <button className="btn btn-accent" onClick={() => executeQuery(2)}>
+                            Execute Query 2
+                                </button>
+                                <div>
                             Bound = <input id="bound"
                                            type="number"
                                            placeholder="2"
                                            value={bound}
                                            onChange={e => setBound(e.target.value)}
-                                           className="input input-bordered input-s w-16"/>
+                                           className="input input-bordered input-s w-16"/></div>
 
                             {/* Verify Button*/}
                             <div className="text-center">
@@ -352,6 +458,11 @@ export default function Home() {
                                         </ul>
                                     )}
                                 </div>
+
+                                <button className="btn btn-accent" onClick={() => handleAskAI()} style={{ backgroundColor: 'lightblue' }}>
+                                    Ask AI
+                                </button>
+                                
 
                             </div>
                         </div>
@@ -524,6 +635,12 @@ export default function Home() {
                     <div className="text-left pt-2">
                         <button className="btn w-24" onClick={() => loadLeetCodeExample()}>
                             LeetCode Example
+                        </button>
+                    </div>
+
+                    <div className="text-left pt-2">
+                        <button className="btn w-24" onClick={() => loadTPC_H_Example()}>
+                            TPC-H Example
                         </button>
                     </div>
 

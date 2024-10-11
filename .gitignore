@@ -161,3 +161,11 @@ cython_debug/
 .idea/
 frontend/.next
 frontend/node_modules
+frontend/build/static/webpack/app
+frontend/build/static/webpack
+frontend/build/static/media
+frontend/build/server/vendor-chunks
+frontend/build/server/app
+frontend/build/server
+frontend/build/cache/webpack/server-development
+frontend/build/cache/webpack/client-development
