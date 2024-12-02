@@ -8,6 +8,8 @@ import Header from "@/app/components/header";
 
 
 export default function Home() {
+    var query1_res;
+    var query2_res;
     function handleVerify() {
         try {
             let data = {
@@ -174,7 +176,7 @@ export default function Home() {
         }
         try{
             let data = {
-                "query1": query1,
+                "query1": text,
                 
             }
             fetch('http://127.0.0.1:8000/excquery', {
@@ -276,7 +278,7 @@ export default function Home() {
         counterexample.innerHTML = '';
 
         setQuery1('SELECT DEPTNO, COUNT(*) FILTER (WHERE JOB = \'CLERK\') FROM (SELECT * FROM EMP WHERE DEPTNO = 10 UNION ALL SELECT * FROM EMP WHERE DEPTNO > 20) AS t3 GROUP BY DEPTNO');
-        // setQuery2('SELECT DEPTNO, COALESCE(SUM(EXPR$1), 0) FROM (SELECT DEPTNO, COUNT(*) FILTER (WHERE JOB = \'CLERK\') AS EXPR$1 FROM EMP WHERE DEPTNO = 10 GROUP BY DEPTNO UNION ALL SELECT DEPTNO, COUNT(*) FILTER (WHERE JOB = \'CLERK\') AS EXPR$1 FROM EMP WHERE DEPTNO > 20 GROUP BY DEPTNO) AS t12 GROUP BY DEPTNO');
+        setQuery2('SELECT DEPTNO, COALESCE(SUM(EXPR$1), 0) FROM (SELECT DEPTNO, COUNT(*) FILTER (WHERE JOB = \'CLERK\') AS EXPR$1 FROM EMP WHERE DEPTNO = 10 GROUP BY DEPTNO UNION ALL SELECT DEPTNO, COUNT(*) FILTER (WHERE JOB = \'CLERK\') AS EXPR$1 FROM EMP WHERE DEPTNO > 20 GROUP BY DEPTNO) AS t12 GROUP BY DEPTNO');
         setBound(2);
         setSchema('{"EMP": {"EMPNO": "INT", "DEPTNO": "int", "ENAME": "VARCHAR", "JOB": "VARCHAR", "MGR": "INT",\n' +
             '                          "HIREDATE": "DATE", "SAL": "INT", "COMM": "INT", "SLACKER": "BOOLEAN"},\n' +
@@ -333,7 +335,7 @@ export default function Home() {
             ']');
     }
 
-    function loadTPC_H_Example() {
+    function loadTPC_H_Example1() {
         const status = document.getElementById('decision');
         const counterexample = document.getElementById('counterexample');
         // @ts-ignore
@@ -342,6 +344,114 @@ export default function Home() {
         counterexample.innerHTML = '';
 
         setQuery1("SELECT sum(l_extendedprice * l_discount) as revenue FROM lineitem WHERE l_shipdate >= date '1993-01-01' and l_shipdate < date '1993-01-01' + interval '1' year and l_discount between 0.07 - 0.01 and 0.07 + 0.01 and l_quantity < 25 LIMIT 1;");
+        // setQuery2('SELECT CUSTOMER_ID, CUSTOMER_NAME FROM CUSTOMERS WHERE CUSTOMER_ID IN (SELECT DISTINCT CUSTOMER_ID FROM ORDERS WHERE PRODUCT_NAME = \'A\') AND CUSTOMER_ID IN (SELECT DISTINCT CUSTOMER_ID FROM ORDERS WHERE PRODUCT_NAME = \'B\') AND CUSTOMER_ID NOT IN (SELECT DISTINCT CUSTOMER_ID FROM ORDERS WHERE PRODUCT_NAME = \'C\') ORDER BY CUSTOMER_ID');
+        setBound(2);
+        setSchema('{\n' +
+            '  "LINEITEM": {"L_ORDERKEY": "INT", "L_PARTKEY": "INT", "L_SUPPKEY": "INT", "L_LINENUMBER": "INT","L_QUANTITY": "DECIMAL", "L_EXTENDEDPRICE": "DECIMAL","L_DISCOUNT": "DECIMAL", "L_TAX": "DECIMAL","L_RETURNFLAG": "VARCHAR", "L_LINESTATUS": "VARCHAR","L_SHIPDATE": "DATE", "L_COMMITDATE": "DATE","L_RECEIPTDATE": "DATE", "L_SHIPINSTRUCT": "VARCHAR","L_SHIPMODE": "VARCHAR", "L_COMMENT": "VARCHAR"}\n' +
+            // '  "ORDERS": {"ORDER_ID": "INT", "CUSTOMER_ID": "int", "PRODUCT_NAME": "VARCHAR"}\n' +
+            '}');
+        setConstraints('[\n' +
+            '  {"primary": [{"value": "LINEITEM.L_ORDERKEY"}]}\n' +
+            // '  {"primary": [{"value": "ORDERS.ORDER_ID"}]},\n' +
+            // '  {"foreign": [{"value": "ORDERS.CUSTOMER_ID"}, {"value": "CUSTOMERS.CUSTOMER_ID"}]}\n' +
+            ']');
+    }
+
+
+    function loadTPC_H_Example3() {
+        const status = document.getElementById('decision');
+        const counterexample = document.getElementById('counterexample');
+        // @ts-ignore
+        status.innerHTML = '';
+        // @ts-ignore
+        counterexample.innerHTML = '';
+
+        setQuery1("SELECT sum(l_extendedprice * l_discount) as revenue FROM lineitem WHERE l_shipdate >= date '1993-01-01' and l_shipdate < date '1993-01-01' + interval '1' year and l_discount between 0.07 - 0.01 and 0.07 + 0.01 and l_quantity < 25 LIMIT 1;");
+        // setQuery2('SELECT CUSTOMER_ID, CUSTOMER_NAME FROM CUSTOMERS WHERE CUSTOMER_ID IN (SELECT DISTINCT CUSTOMER_ID FROM ORDERS WHERE PRODUCT_NAME = \'A\') AND CUSTOMER_ID IN (SELECT DISTINCT CUSTOMER_ID FROM ORDERS WHERE PRODUCT_NAME = \'B\') AND CUSTOMER_ID NOT IN (SELECT DISTINCT CUSTOMER_ID FROM ORDERS WHERE PRODUCT_NAME = \'C\') ORDER BY CUSTOMER_ID');
+        setBound(2);
+        setSchema('{  "LINEITEM": {"L_ORDERKEY": "INT", "L_PARTKEY": "INT", "L_SUPPKEY": "INT", "L_LINENUMBER": "INT","L_QUANTITY": "DECIMAL", "L_EXTENDEDPRICE": "DECIMAL","L_DISCOUNT": "DECIMAL", "L_TAX": "DECIMAL","L_RETURNFLAG": "VARCHAR", "L_LINESTATUS": "VARCHAR","L_SHIPDATE": "DATE", "L_COMMITDATE": "DATE","L_RECEIPTDATE": "DATE", "L_SHIPINSTRUCT": "VARCHAR","L_SHIPMODE": "VARCHAR", "L_COMMENT": "VARCHAR"},\n' + 
+ ' "NATION": {"N_NATIONKEY": "SERIAL", "N_NAME": "VARCHAR", "N_REGIONKEY": "INT", "N_COMMENT": "VARCHAR"}\n' +
+ '}');
+        setConstraints('[\n' +
+'  {"primary": [{"value": "LINEITEM.L_ORDERKEY"}]},\n' +
+'  {"primary": [{"value": "NATION.N_NATIONKEY"}]}\n' +
+            ']');
+    }
+
+    function loadTPC_H_Example22() {
+        const status = document.getElementById('decision');
+        const counterexample = document.getElementById('counterexample');
+        // @ts-ignore
+        status.innerHTML = '';
+        // @ts-ignore
+        counterexample.innerHTML = '';
+        let query22 = "select cntrycode, count(*) as numcust, sum(c_acctbal) as totacctbal from ( select substring(c_phone from 1 for 2) as cntrycode, c_acctbal from customer where substring(c_phone from 1 for 2) in ('37', '42', '33', '34', '43', '41', '35') and c_acctbal > (select avg(c_acctbal) from customer where c_acctbal > 0.00 and substring(c_phone from 1 for 2) in ('37', '42', '33', '34', '43', '41', '35') ) and not exists ( select * from orders where o_custkey = c_custkey ) ) as custsale group by cntrycode order by cntrycode LIMIT 1;";
+        setQuery1(query22);
+        //let query22_opt = ``;
+        setBound(20);
+        setSchema('{  "CUSTOMER": {"C_CUSTKEY": "SERIAL", "C_NAME": "VARCHAR", "C_ADDRESS": "VARCHAR", "C_NATIONKEY": "INT","C_PHONE": "VARCHAR", "C_ACCTBAL": "DECIMAL","C_MKTSEGMENT": "VARCHAR", "C_COMMENT": "VARCHAR"},\n' + 
+ ' "ORDERS": {"O_ORDERKEY": "SERIAL", "O_CUSTKEY": "INT", "O_ORDERSTATUS": "VARCHAR", "O_TOTALPRICE": "DECIMAL", "O_ORDERDATE": "DATE", "O_ORDERPRIORITY": "VARCHAR", "O_CLERK": "VARCHAR", "O_SHIPPRIORITY": "INT","O_COMMENT": "VARCHAR"}\n' +'}');
+        setConstraints(`[
+  {"primary": [{"value": "ORDERS.O_ORDERKEY"}]},
+  {"primary": [{"value": "CUSTOMER.C_CUSTKEY"}]},
+  {"foreign": [{"value": "ORDERS.O_CUSTKEY"}, {"value": "CUSTOMER.C_CUSTKEY"}]},
+  {"not_null": {"value": "CUSTOMER.C_NATIONKEY"}}, {"not_null": {"value": "ORDERS.O_CUSTKEY"}}
+]`);
+    }
+
+    function loadTPC_H_Example2() {
+        const status = document.getElementById('decision');
+        const counterexample = document.getElementById('counterexample');
+        // @ts-ignore
+        status.innerHTML = '';
+        // @ts-ignore
+        counterexample.innerHTML = '';
+
+        setQuery1(`select
+	s_acctbal,
+	s_name,
+	n_name,
+	p_partkey,
+	p_mfgr,
+	s_address,
+	s_phone,
+	s_comment
+from
+	part,
+	supplier,
+	partsupp,
+	nation,
+	region
+where
+	p_partkey = ps_partkey
+	and s_suppkey = ps_suppkey
+	and p_size = 49
+	and p_type like '%NICKEL'
+	and s_nationkey = n_nationkey
+	and n_regionkey = r_regionkey
+	and r_name = 'EUROPE'
+	and ps_supplycost = (
+		select
+			min(ps_supplycost)
+		from
+			partsupp,
+			supplier,
+			nation,
+			region
+		where
+			p_partkey = ps_partkey
+			and s_suppkey = ps_suppkey
+			and s_nationkey = n_nationkey
+			and n_regionkey = r_regionkey
+			and r_name = 'EUROPE'
+	)
+order by
+	s_acctbal desc,
+	n_name,
+	s_name,
+	p_partkey
+LIMIT 100;
+`);
         // setQuery2('SELECT CUSTOMER_ID, CUSTOMER_NAME FROM CUSTOMERS WHERE CUSTOMER_ID IN (SELECT DISTINCT CUSTOMER_ID FROM ORDERS WHERE PRODUCT_NAME = \'A\') AND CUSTOMER_ID IN (SELECT DISTINCT CUSTOMER_ID FROM ORDERS WHERE PRODUCT_NAME = \'B\') AND CUSTOMER_ID NOT IN (SELECT DISTINCT CUSTOMER_ID FROM ORDERS WHERE PRODUCT_NAME = \'C\') ORDER BY CUSTOMER_ID');
         setBound(2);
         setSchema('{\n' +
@@ -364,7 +474,7 @@ export default function Home() {
         counterexample.innerHTML = '';
 
         setQuery1('SELECT PNUM FROM PARTS WHERE (PNUM, QOH) IN (SELECT P.PNUM, IF(ISNULL(CT), 0, CT) AS QOH FROM (SELECT PNUM FROM SUPPLY GROUP BY PNUM) P LEFT JOIN (SELECT PNUM, COUNT(SHIPDATE) AS CT FROM SUPPLY WHERE SHIPDATE < (DATE \'1980-01-01\') GROUP BY PNUM) Q ON P.PNUM=Q.PNUM);');
-        // setQuery2('WITH TEMP(SUPPNUM, CT) AS (SELECT PNUM, COUNT(SHIPDATE) FROM SUPPLY WHERE SHIPDATE < (DATE \'1980-01-01\') GROUP BY PNUM) SELECT PNUM FROM PARTS, TEMP WHERE PARTS.QOH = TEMP.CT AND PARTS.PNUM = TEMP.SUPPNUM;');
+        setQuery2('WITH TEMP(SUPPNUM, CT) AS (SELECT PNUM, COUNT(SHIPDATE) FROM SUPPLY WHERE SHIPDATE < (DATE \'1980-01-01\') GROUP BY PNUM) SELECT PNUM FROM PARTS, TEMP WHERE PARTS.QOH = TEMP.CT AND PARTS.PNUM = TEMP.SUPPNUM;');
         setBound(1);
         setSchema('{\n' +
             '  "PARTS":{"PNUM":"INT","QOH":"INT"},\n' +
@@ -382,7 +492,7 @@ export default function Home() {
         counterexample.innerHTML = '';
 
         setQuery1('SELECT DISTINCT PAGE_ID AS RECOMMENDED_PAGE FROM (SELECT CASE WHEN USER1_ID=1 THEN USER2_ID WHEN USER2_ID=1 THEN USER1_ID ELSE NULL END AS USER_ID FROM FRIENDSHIP) AS TB1 JOIN LIKES AS TB2 ON TB1.USER_ID=TB2.USER_ID WHERE PAGE_ID NOT IN (SELECT PAGE_ID FROM LIKES WHERE USER_ID=1)');
-        // setQuery2('SELECT DISTINCT PAGE_ID AS RECOMMENDED_PAGE FROM ( SELECT B.USER_ID, B.PAGE_ID FROM FRIENDSHIP A LEFT JOIN LIKES B ON (A.USER2_ID=B.USER_ID OR A.USER1_ID=B.USER_ID) AND (A.USER1_ID=1 OR A.USER2_ID=1) WHERE B.PAGE_ID NOT IN ( SELECT DISTINCT(PAGE_ID) FROM LIKES WHERE USER_ID=1) ) T');
+        setQuery2('SELECT DISTINCT PAGE_ID AS RECOMMENDED_PAGE FROM ( SELECT B.USER_ID, B.PAGE_ID FROM FRIENDSHIP A LEFT JOIN LIKES B ON (A.USER2_ID=B.USER_ID OR A.USER1_ID=B.USER_ID) AND (A.USER1_ID=1 OR A.USER2_ID=1) WHERE B.PAGE_ID NOT IN ( SELECT DISTINCT(PAGE_ID) FROM LIKES WHERE USER_ID=1) ) T');
         setBound(1);
         setSchema('{\n' +
             '  "FRIENDSHIP":{"USER1_ID":"INT","USER2_ID":"INT"},\n' +
@@ -639,8 +749,26 @@ export default function Home() {
                     </div>
 
                     <div className="text-left pt-2">
-                        <button className="btn w-24" onClick={() => loadTPC_H_Example()}>
-                            TPC-H Example
+                        <button className="btn w-24" onClick={() => loadTPC_H_Example1()}>
+                            TPC-H Example 1
+                        </button>
+                    </div>
+
+                    <div className="text-left pt-2">
+                        <button className="btn w-24" onClick={() => loadTPC_H_Example2()}>
+                            TPC-H Example 2
+                        </button>
+                    </div>
+
+                    <div className="text-left pt-2">
+                        <button className="btn w-24" onClick={() => loadTPC_H_Example3()}>
+                            TPC-H Example 3
+                        </button>
+                    </div>
+
+                    <div className="text-left pt-2">
+                        <button className="btn w-24" onClick={() => loadTPC_H_Example22()}>
+                            TPC-H 22
                         </button>
                     </div>
 
