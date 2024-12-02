@@ -161,3 +161,4 @@ cython_debug/
 .idea/
 frontend/.next
 frontend/node_modules
+frontend/build

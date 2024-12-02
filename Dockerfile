@@ -15,9 +15,9 @@ RUN pip install -r requirements.txt
 WORKDIR /backend/verieql
 RUN cp -fr z3py_libs/*.py /venv/lib/python3.11/site-packages/z3
 
-COPY frontend /frontend
+# COPY frontend /frontend
 
-RUN chmod -R 777 /frontend
+# RUN chmod -R 777 /frontend
 RUN chmod -R 777 /backend
 
 COPY entrypoint.sh /entrypoint.sh
