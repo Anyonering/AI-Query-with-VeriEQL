@@ -27,8 +27,9 @@
 ### 1. Clone the repo
 
 ```bash
-git clone --recursive https://github.com/whatsmyname/VeriEQL-demo.git
-cd VeriEQL-demo
+git clone --recursive https://github.com/Anyonering/AI-Query-with-VeriEQL.git
+cd AI-Query-with-VeriEQL
+git checkout only-backend
 ```
 
 ### 2. Build and start the Docker container
@@ -36,7 +37,7 @@ cd VeriEQL-demo
 chmod +x start.sh && ./start.sh
 ```
 
-After finishing, visit http://localhost:3000 to use VeriEQL.
+The VeriEQL backend is available at localhost:8000.
 
 
 ## ➕ Features
